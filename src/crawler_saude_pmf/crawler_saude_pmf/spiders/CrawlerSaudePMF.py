@@ -4,6 +4,13 @@ import scrapy
 class CrawlerSaudePMF(scrapy.Spider):
     name = "saude_pmf"
 
+    custom_settings = {
+        'HTTPCACHE_ENABLED': True
+    }
+
+    # é possível trocar o método start_requests pelo atributo 
+    # de classe start_urls = []
+
     def start_requests(self):
         urls = [
             'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2015_index.php'
