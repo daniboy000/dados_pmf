@@ -4,6 +4,7 @@ import scrapy
 class MicroArea(scrapy.Item):
     distrito_sanitario = scrapy.Field()
     centro_saude = scrapy.Field()
+    year = scrapy.Field()
 
     codigo_micro_area = scrapy.Field()
     residentes = scrapy.Field()
@@ -69,23 +70,20 @@ class CrawlerSaudePMF(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
+        """
+        """
+
+        year = self.get_year(response.url)
+
         # Get all tables from page
         tables = response.css('table')
-        self.log('Num tables: {}'.format(len(tables)))
-
-        # Get lines from table 1
+        # Get lines from table 1. Table 1 has the needed data
         table_trs = tables[1].css('tr')
-        info_micro_areas = []
+        micro_areas = []
         for tr in table_trs:
-            info_micro_areas.append(self.get_links_micro_areas(tr.css('td')))
+            micro_areas.append(self.get_links_micro_areas(tr.css('td'), year))
 
-        self.log('INFO')
-        self.log(info_micro_areas[0])
-
-        teste = info_micro_areas[0]
-        micro_areas = teste['micro_areas']
-
-        for info in info_micro_areas:
+        for info in micro_areas:
             micro_areas = info['micro_areas']
             for area in micro_areas:
                 self.log('Area: {}'.format(area))
@@ -95,10 +93,13 @@ class CrawlerSaudePMF(scrapy.Spider):
                 self.log('Full link: {}'.format(full_link))
                 yield scrapy.Request(url=full_link,
                                      callback=self.parse_micro_areas,
-                                     meta={'ds': info['distrito_sanitario'],
-                                           'cs': info['centro_saude']})
+                                     meta={
+                                            'ds': info['distrito_sanitario'],
+                                            'cs': info['centro_saude'],
+                                            'year': info['year']
+                                          })
 
-    def get_links_micro_areas(self, tds):
+    def get_links_micro_areas(self, tds, year):
         distrito_sanitario = tds[0].css('a::text').extract_first()
         centro_saude = tds[1].css('a::text').extract_first()
 
@@ -124,20 +125,33 @@ class CrawlerSaudePMF(scrapy.Spider):
         entry['distrito_sanitario'] = distrito_sanitario
         entry['centro_saude'] = centro_saude
         entry['micro_areas'] = micro_areas
+        entry['year'] = year
         return entry
 
     def get_year(self, url):
+        """Get the year from url.
+
+        Arguments:
+        url -- link to remove the year
+        """
         last_part = url.split('/')[-1]
         begin = last_part.find('_')
         end = last_part.rfind('_')
         return last_part[begin + 1:end]
 
     def parse_micro_areas(self, response):
+        """Form a complex number.
+
+        Keyword arguments:
+        real -- the real part (default 0.0)
+        imag -- the imaginary part (default 0.0)
+        """
         table = response.css('table')
         trs = table.css('tr')
 
         distrito_sanitario = response.meta['ds']
         centro_saude = response.meta['cs']
+        year = response.meta['year']
 
         for tr in trs[2:-1]:
             micro_area = MicroArea()
@@ -145,6 +159,7 @@ class CrawlerSaudePMF(scrapy.Spider):
 
             micro_area['distrito_sanitario'] = distrito_sanitario
             micro_area['centro_saude'] = centro_saude
+            micro_area['year'] = year
             micro_area['codigo_micro_area'] = data[0]
             micro_area['residentes'] = data[1]
             micro_area['homens_residentes'] = data[2]
