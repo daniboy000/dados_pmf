@@ -63,7 +63,15 @@ class CrawlerSaudePMF(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2015_index.php'
+            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2015_index.php',
+            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2014_index.php',
+            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2013_index.php',
+            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2012_index.php'
+            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2011_index.php',
+            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2010_index.php',
+            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2009_index.php',
+            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2008_index.php',
+            'http://www.pmf.sc.gov.br/sistemas/saude/unidades_saude/populacao/uls_2007_index.php'
         ]
 
         for url in urls:
@@ -94,9 +102,9 @@ class CrawlerSaudePMF(scrapy.Spider):
                 yield scrapy.Request(url=full_link,
                                      callback=self.parse_micro_areas,
                                      meta={
-                                            'ds': info['distrito_sanitario'],
-                                            'cs': info['centro_saude'],
-                                            'year': info['year']
+                                              'ds': info['distrito_sanitario'],
+                                              'cs': info['centro_saude'],
+                                              'year': info['year']
                                           })
 
     def get_links_micro_areas(self, tds, year):
